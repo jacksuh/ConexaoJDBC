@@ -7,27 +7,40 @@ import java.sql.Statement;
 
 public class TestaInsercaoComParametro {
 
-	public static void main(String[] args)throws SQLException {
-		
-		int id = 9;
-		String nome ="Teste";
-		String descricao="Mouse sem fio";
-		
+public static void main(String[] args) throws SQLException {
 		ConnectionFactory factory = new ConnectionFactory();
-		Connection connection = factory.recuperarConexao();
+		try(Connection connection = factory.recuperarConexao()){
 		
+		connection.setAutoCommit(false);
+	try (
 		PreparedStatement stm = connection.prepareStatement("INSERT INTO PRODUTO(id, nome, descricao) VALUES (?,?,?)", Statement.RETURN_GENERATED_KEYS);
+			){
+		adicionarVariavel( 19,"SmartTVv","45 polegadass", stm);
+		adicionarVariavel( 20,"Radios","Radio de baterias", stm);
 		
+		connection.commit();
+		
+		}catch(Exception e){
+		e.printStackTrace();
+		System.out.println("Rollback executado");
+		connection.rollback();
+	}
+	}
+}
+	
+	private static void adicionarVariavel(int id, String nome, String descricao, PreparedStatement stm)throws SQLException{
 		stm.setInt(1, id);
 		stm.setString(2, nome);
 		stm.setString(3, descricao);
 		
+		
 		stm.execute();
 		
-		ResultSet rst = stm.getGeneratedKeys();
+		try(ResultSet rst = stm.getGeneratedKeys()){
 		while(rst.next()){
 			Integer id1 = rst.getInt(1);
 			System.out.println("o id criado foi" + id1);
+		}
 	}
-}	
+	}
 }
